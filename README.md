@@ -8,11 +8,18 @@ A multiplayer rotating Connect Four game with WebSockets.
 2. After each move, the inner 2x2 grid rotates 90 degrees clockwise:
    - Pieces in positions [1,1], [1,2], [2,2], and [2,1] rotate
    - Example: a piece at [1,1] moves to [1,2], a piece at [1,2] moves to [2,2], etc.
-3. At the same time, the outer ring (all cells except the inner 2x2) rotates 90 degrees counter-clockwise:
-   - This includes all border cells and corner cells
-   - Example: a piece at [0,0] moves to [0,3], a piece at [0,3] moves to [3,3], etc.
+3. At the same time, pieces on the outer ring (all cells except the inner 2x2) shift one position counter-clockwise:
+   - Top row: Each piece shifts left, with the leftmost piece moving down
+   - Right column: Each piece shifts up, with the topmost piece moving left
+   - Bottom row: Each piece shifts right, with the rightmost piece moving up
+   - Left column: Each piece shifts down, with the bottommost piece moving right
+   - Examples:
+     - A piece at [0,2] shifts to [0,1]
+     - A piece at [0,0] shifts to [1,0]
+     - A piece at [2,0] shifts to [3,0]
+     - A piece at [3,3] shifts to [3,2]
 4. The first player to connect 4 same-colored pieces in a row (horizontal, vertical, or diagonal) wins
-5. The rotation happens automatically after each move, creating a dynamic and challenging game!
+5. The movement happens automatically after each move, creating a dynamic and challenging game!
 
 ## Setup
 

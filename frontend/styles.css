@@ -291,7 +291,7 @@ button:active {
 }
 
 .rotate-counter-clockwise {
-    animation: rotateCounterClockwise 0.8s forwards;
+    animation: shiftCounterClockwise 0.8s forwards;
 }
 
 @keyframes rotateClockwise {
@@ -299,12 +299,15 @@ button:active {
     to { transform: rotate(90deg); }
 }
 
-@keyframes rotateCounterClockwise {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(-90deg); }
+/* Instead of rotating, we use a pulse effect to show movement */
+@keyframes shiftCounterClockwise {
+    0% { transform: scale(1); opacity: 1; }
+    40% { transform: scale(0.8); opacity: 0.7; }
+    60% { transform: scale(0.8); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
-/* Additional styles for visual clarity of rotation zones */
+/* Visual clarity of rotation and shift zones */
 .board::before {
     content: '';
     position: absolute;
@@ -316,6 +319,25 @@ button:active {
     border-radius: 4px;
     pointer-events: none;
     z-index: 1;
+}
+
+/* Outer ring indicators */
+.board::after {
+    content: '⟲';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    border: 2px dashed rgba(44, 62, 80, 0.2);
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    color: rgba(44, 62, 80, 0.3);
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* Responsive Design */

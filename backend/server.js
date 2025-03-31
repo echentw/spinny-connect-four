@@ -72,32 +72,33 @@ function rotateOuterCounterClockwise(board) {
   // - Bottom row: [3,0], [3,1], [3,2], [3,3]
   // - Left column (excluding corners): [1,0], [2,0]
   
-  // Save the current state before rotation
+  // Save the current state before shifting
   const topRow = [board[0][0], board[0][1], board[0][2], board[0][3]];
   const rightCol = [board[1][3], board[2][3]];
   const bottomRow = [board[3][0], board[3][1], board[3][2], board[3][3]];
   const leftCol = [board[1][0], board[2][0]];
   
-  // Rotate counter-clockwise (90 degrees)
-  // Top row <- Right column + top-right corner
-  newBoard[0][0] = board[1][3];
-  newBoard[0][1] = board[2][3]; 
-  newBoard[0][2] = board[3][3];
-  newBoard[0][3] = board[3][2];
+  // Shift counter-clockwise (each piece moves one position counter-clockwise)
   
-  // Right column <- Bottom row (excluding bottom-right)
-  newBoard[1][3] = board[3][1];
-  newBoard[2][3] = board[3][0];
+  // Top row shifts left (except leftmost which goes down)
+  newBoard[0][0] = topRow[1];      // [0,1] → [0,0]
+  newBoard[0][1] = topRow[2];      // [0,2] → [0,1]
+  newBoard[0][2] = topRow[3];      // [0,3] → [0,2]
   
-  // Bottom row <- Left column + bottom-left corner
-  newBoard[3][3] = board[2][0];
-  newBoard[3][2] = board[1][0];
-  newBoard[3][1] = board[0][0];
-  newBoard[3][0] = board[0][1];
+  // Right column shifts up (except topmost which goes left)
+  newBoard[0][3] = rightCol[0];    // [1,3] → [0,3]
+  newBoard[1][3] = rightCol[1];    // [2,3] → [1,3]
   
-  // Left column <- Top row (excluding top-left)
-  newBoard[1][0] = board[0][2];
-  newBoard[2][0] = board[0][3];
+  // Bottom row shifts right (except rightmost which goes up)
+  newBoard[2][3] = bottomRow[3];   // [3,3] → [2,3]
+  newBoard[3][3] = bottomRow[2];   // [3,2] → [3,3]
+  newBoard[3][2] = bottomRow[1];   // [3,1] → [3,2]
+  newBoard[3][1] = bottomRow[0];   // [3,0] → [3,1]
+  
+  // Left column shifts down (except bottommost which goes right)
+  newBoard[3][0] = leftCol[1];     // [2,0] → [3,0]
+  newBoard[2][0] = leftCol[0];     // [1,0] → [2,0]
+  newBoard[1][0] = topRow[0];      // [0,0] → [1,0]
   
   return newBoard;
 }
