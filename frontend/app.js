@@ -70,11 +70,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         socket.on('gameUpdate', (data) => {
+            // Hide the preview piece during animation
+            const previewPiece = document.getElementById('preview-piece');
+            if (previewPiece) {
+                previewPiece.style.opacity = '0';
+            }
+            
+            // Store the new board state but don't apply it until animation is done
+            const newBoard = data.board;
+            const newCurrentPlayer = data.currentPlayer;
+            
             // First show rotation animation, then update the board
             animateBoardRotation(() => {
                 // After animation is complete, update the board state and game status
-                board = data.board;
-                currentPlayer = data.currentPlayer;
+                board = newBoard;
+                currentPlayer = newCurrentPlayer;
                 updateBoardState();
                 updateGameStatus();
             });
@@ -181,13 +191,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = parseInt(cell.dataset.row);
             const col = parseInt(cell.dataset.col);
             
-            // Clear existing pieces
-            cell.innerHTML = '';
+            // Remove faded original pieces
+            const existingPiece = cell.querySelector('.piece');
+            if (existingPiece) {
+                cell.removeChild(existingPiece);
+            }
             
-            // Add piece if present
+            // Add piece if present in the new board state
             if (board[row][col]) {
                 const piece = document.createElement('div');
                 piece.className = `piece ${board[row][col]}`;
+                
+                // Only animate pieces that weren't in this position before
+                const wasOccupiedBefore = existingPiece && 
+                    ((existingPiece.classList.contains('white') && board[row][col] === 'white') || 
+                     (existingPiece.classList.contains('black') && board[row][col] === 'black'));
+                
+                if (!wasOccupiedBefore) {
+                    piece.animate([
+                        { opacity: 0, transform: 'scale(0.9)' },
+                        { opacity: 1, transform: 'scale(1)' }
+                    ], {
+                        duration: 200,
+                        easing: 'ease-out'
+                    });
+                }
+                
                 cell.appendChild(piece);
             }
         });
@@ -213,59 +242,147 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Animate the board rotation effect
+    // Animate the board rotation effect with actual piece movement
     function animateBoardRotation(callback) {
         // Get inner and outer indicators and add animation classes
         const innerIndicator = document.querySelector('.inner-indicator');
         const outerIndicator = document.querySelector('.outer-indicator');
         
         innerIndicator.classList.add('rotate-clockwise');
-        outerIndicator.classList.add('rotate-counter-clockwise');
+        outerIndicator.classList.add('pulse-animation');
         
-        // Get all inner cells and add clockwise rotation
+        // Create a clone of the current board state to use for animation
+        const currentBoardState = [];
+        for (let row = 0; row < 4; row++) {
+            currentBoardState[row] = [];
+            for (let col = 0; col < 4; col++) {
+                const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+                const piece = cell.querySelector('.piece');
+                currentBoardState[row][col] = piece ? piece.className.includes('white') ? 'white' : 'black' : null;
+                
+                // Don't hide original pieces - we'll create animation pieces that overlay them
+            }
+        }
+        
+        // First, highlight the cells that will be animated
         const innerCells = document.querySelectorAll('.cell.inner');
         innerCells.forEach(cell => {
-            const piece = cell.querySelector('.piece');
-            if (piece) {
-                piece.classList.add('rotate-clockwise');
-            }
             cell.classList.add('inner-highlight');
         });
         
-        // Get all outer cells and add counter-clockwise rotation
         const outerCells = document.querySelectorAll('.cell:not(.inner)');
         outerCells.forEach(cell => {
-            const piece = cell.querySelector('.piece');
-            if (piece) {
-                piece.classList.add('rotate-counter-clockwise');
-            }
             cell.classList.add('outer-highlight');
         });
         
-        // After animation completes, remove classes and call callback
+        // Create animation pieces immediately (no delay)
+        // Inner 2x2 clockwise rotation animation
+        if (currentBoardState[1][1]) createMovingPiece([1, 1], [1, 2], currentBoardState[1][1], 'rotate-move');
+        if (currentBoardState[1][2]) createMovingPiece([1, 2], [2, 2], currentBoardState[1][2], 'rotate-move');
+        if (currentBoardState[2][2]) createMovingPiece([2, 2], [2, 1], currentBoardState[2][2], 'rotate-move');
+        if (currentBoardState[2][1]) createMovingPiece([2, 1], [1, 1], currentBoardState[2][1], 'rotate-move');
+        
+        // Outer ring shift animations - top row
+        if (currentBoardState[0][3]) createMovingPiece([0, 3], [0, 2], currentBoardState[0][3], 'shift-move');
+        if (currentBoardState[0][2]) createMovingPiece([0, 2], [0, 1], currentBoardState[0][2], 'shift-move');
+        if (currentBoardState[0][1]) createMovingPiece([0, 1], [0, 0], currentBoardState[0][1], 'shift-move');
+        if (currentBoardState[0][0]) createMovingPiece([0, 0], [1, 0], currentBoardState[0][0], 'shift-move');
+        
+        // Right column
+        if (currentBoardState[1][3]) createMovingPiece([1, 3], [0, 3], currentBoardState[1][3], 'shift-move');
+        if (currentBoardState[2][3]) createMovingPiece([2, 3], [1, 3], currentBoardState[2][3], 'shift-move');
+        if (currentBoardState[3][3]) createMovingPiece([3, 3], [2, 3], currentBoardState[3][3], 'shift-move');
+        
+        // Bottom row
+        if (currentBoardState[3][0]) createMovingPiece([3, 0], [3, 1], currentBoardState[3][0], 'shift-move');
+        if (currentBoardState[3][1]) createMovingPiece([3, 1], [3, 2], currentBoardState[3][1], 'shift-move');
+        if (currentBoardState[3][2]) createMovingPiece([3, 2], [3, 3], currentBoardState[3][2], 'shift-move');
+        
+        // Left column
+        if (currentBoardState[1][0]) createMovingPiece([1, 0], [2, 0], currentBoardState[1][0], 'shift-move');
+        if (currentBoardState[2][0]) createMovingPiece([2, 0], [3, 0], currentBoardState[2][0], 'shift-move');
+        
+        // After animation completes, remove all animation elements and show the updated board
         setTimeout(() => {
             innerIndicator.classList.remove('rotate-clockwise');
-            outerIndicator.classList.remove('rotate-counter-clockwise');
+            outerIndicator.classList.remove('pulse-animation');
             
             innerCells.forEach(cell => {
-                const piece = cell.querySelector('.piece');
-                if (piece) {
-                    piece.classList.remove('rotate-clockwise');
-                }
                 cell.classList.remove('inner-highlight');
             });
             
             outerCells.forEach(cell => {
-                const piece = cell.querySelector('.piece');
-                if (piece) {
-                    piece.classList.remove('rotate-counter-clockwise');
-                }
                 cell.classList.remove('outer-highlight');
             });
             
-            // Call the callback function to update the board state
+            // Remove all animation pieces
+            document.querySelectorAll('.animation-piece').forEach(el => el.remove());
+            
+            // Call the callback function to update the board state with the server's data
             if (callback) callback();
-        }, 850); // Animation time plus a small delay
+        }, 1000); // Animation duration
+    }
+    
+    // Helper function to create and animate a moving piece
+    function createMovingPiece(fromPos, toPos, pieceColor, animationType) {
+        const [fromRow, fromCol] = fromPos;
+        const [toRow, toCol] = toPos;
+        
+        // Get position of source and target cells
+        const fromCell = document.querySelector(`.cell[data-row="${fromRow}"][data-col="${fromCol}"]`);
+        const toCell = document.querySelector(`.cell[data-row="${toRow}"][data-col="${toCol}"]`);
+        
+        if (!fromCell || !toCell) return;
+        
+        // Get the original piece and temporarily make it semi-transparent
+        const originalPiece = fromCell.querySelector('.piece');
+        if (originalPiece) {
+            originalPiece.style.opacity = '0.3'; // Make original piece semi-transparent during animation
+        }
+        
+        const fromRect = fromCell.getBoundingClientRect();
+        const toRect = toCell.getBoundingClientRect();
+        
+        // Create animated piece
+        const animPiece = document.createElement('div');
+        animPiece.className = `piece ${pieceColor} animation-piece`;
+        document.body.appendChild(animPiece);
+        
+        // Position at start
+        const startX = fromRect.left + (fromRect.width / 2) - 25; // 25 is half the piece width
+        const startY = fromRect.top + (fromRect.height / 2) - 25;
+        animPiece.style.position = 'fixed';
+        animPiece.style.left = startX + 'px';
+        animPiece.style.top = startY + 'px';
+        animPiece.style.zIndex = '1000';
+        animPiece.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)'; // Add shadow for better visibility
+        
+        // Set end position for animation
+        const endX = toRect.left + (toRect.width / 2) - 25;
+        const endY = toRect.top + (toRect.height / 2) - 25;
+        
+        // For inner rotation, we want to rotate while moving
+        if (animationType === 'rotate-move') {
+            animPiece.style.transition = 'left 1s, top 1s, transform 1s';
+            animPiece.style.transform = 'rotate(0deg)';
+            
+            // Start the animation immediately
+            requestAnimationFrame(() => {
+                animPiece.style.left = endX + 'px';
+                animPiece.style.top = endY + 'px';
+                animPiece.style.transform = 'rotate(90deg)';
+            });
+        } 
+        // For outer shift, we just move without rotation
+        else {
+            animPiece.style.transition = 'left 1s, top 1s';
+            
+            // Start the animation immediately
+            requestAnimationFrame(() => {
+                animPiece.style.left = endX + 'px';
+                animPiece.style.top = endY + 'px';
+            });
+        }
     }
     
     // Handle cell click
@@ -286,10 +403,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const clickedCell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
         const previewPiece = document.createElement('div');
         previewPiece.className = `piece ${playerColor} highlight`;
+        previewPiece.id = 'preview-piece';
         clickedCell.appendChild(previewPiece);
         
         // Disable further clicks until server responds
         gameBoard.classList.add('board-disabled');
+        
+        // Add a "placement" animation to show the piece dropping into place
+        previewPiece.animate([
+            { transform: 'translateY(-50px) scale(0.8)', opacity: 0 },
+            { transform: 'translateY(0) scale(1)', opacity: 1 }
+        ], { 
+            duration: 300,
+            easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        });
         
         // Send move to server
         socket.emit('makeMove', { row, col });

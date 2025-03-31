@@ -294,6 +294,10 @@ button:active {
     animation: shiftCounterClockwise 0.8s forwards;
 }
 
+.pulse-animation {
+    animation: pulse 1.3s forwards;
+}
+
 @keyframes rotateClockwise {
     from { transform: rotate(0deg); }
     to { transform: rotate(90deg); }
@@ -305,6 +309,48 @@ button:active {
     40% { transform: scale(0.8); opacity: 0.7; }
     60% { transform: scale(0.8); opacity: 0.7; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    25% { transform: scale(1.1); opacity: 1; }
+    50% { transform: scale(1); opacity: 0.8; }
+    75% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+/* Styles for animation pieces */
+.animation-piece {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    position: absolute;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.cell.inner-highlight {
+    box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0.8);
+    z-index: 5;
+    animation: glowInner 1.3s infinite;
+}
+
+.cell.outer-highlight {
+    box-shadow: inset 0 0 0 2px rgba(44, 62, 80, 0.8);
+    z-index: 5;
+    animation: glowOuter 1.3s infinite;
+}
+
+@keyframes glowInner {
+    0% { box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0.3); }
+    50% { box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0.8); }
+    100% { box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0.3); }
+}
+
+@keyframes glowOuter {
+    0% { box-shadow: inset 0 0 0 2px rgba(44, 62, 80, 0.3); }
+    50% { box-shadow: inset 0 0 0 2px rgba(44, 62, 80, 0.8); }
+    100% { box-shadow: inset 0 0 0 2px rgba(44, 62, 80, 0.3); }
 }
 
 /* Visual clarity of rotation and shift zones */
