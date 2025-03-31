@@ -66,7 +66,10 @@ This application can be deployed to several platforms:
 1. Push your code to GitHub
 2. Create a new project on Railway
 3. Connect to your GitHub repository
-4. It should automatically detect and deploy your Node.js application
+4. Select "Deploy from GitHub repo"
+5. Railway will use the railway.json configuration
+6. The application will be deployed with both backend and frontend in one service
+7. You can find your public URL in the Railway dashboard
 
 ### Vercel
 

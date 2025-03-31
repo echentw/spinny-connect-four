@@ -21,8 +21,10 @@ app.use(cors());
 // Middleware to parse JSON
 app.use(express.json());
 
-// Serve static files
-app.use(express.static('public'));
+// Serve static files from the frontend directory
+// This is important for deployment - we'll serve the frontend from the backend
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Game state
 const games = {};
@@ -278,6 +280,11 @@ app.get('/api/status', (req, res) => {
     games: Object.keys(games).length,
     waiting: waitingPlayers.length
   });
+});
+
+// Catch-all route to serve the frontend
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 server.listen(PORT, () => {

@@ -27,10 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Connect to the WebSocket server
     function connectToServer() {
-        // Use the current host for deployment compatibility
-        const serverUrl = location.hostname === 'localhost' || location.hostname === '127.0.0.1' 
-            ? 'http://localhost:3001' 
-            : window.location.origin;
+        // In production, the backend serves the frontend so we can use the same origin
+        // In development, we need to specify the backend URL
+        const serverUrl = window.location.origin;
             
         socket = io(serverUrl);
         
